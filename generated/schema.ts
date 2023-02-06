@@ -83,13 +83,21 @@ export class Transaction extends Entity {
     this.set("id", Value.fromString(value));
   }
 
-  get asset(): string {
+  get asset(): string | null {
     let value = this.get("asset");
-    return value!.toString();
+    if (!value || value.kind == ValueKind.NULL) {
+      return null;
+    } else {
+      return value.toString();
+    }
   }
 
-  set asset(value: string) {
-    this.set("asset", Value.fromString(value));
+  set asset(value: string | null) {
+    if (!value) {
+      this.unset("asset");
+    } else {
+      this.set("asset", Value.fromString(<string>value));
+    }
   }
 
   get account(): Bytes {

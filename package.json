@@ -4,6 +4,7 @@
   "scripts": {
     "codegen": "graph codegen",
     "build": "graph build",
+    "deploy:arbitrum": "graph deploy --product hosted-service <username>/<graph-name>",
     "deploy": "graph deploy --node https://api.studio.thegraph.com/deploy/ cruize-subgraph-starter",
     "create-local": "graph create --node http://localhost:8020/ cruize-subgraph-starter",
     "remove-local": "graph remove --node http://localhost:8020/ cruize-subgraph-starter",

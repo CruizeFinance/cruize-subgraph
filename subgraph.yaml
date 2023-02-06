@@ -4,11 +4,11 @@ schema:
 dataSources:
   - kind: ethereum
     name: Cruize
-    network: arbitrum-goerli
+    network: goerli
     source:
       abi: Cruize
-      startBlock: 6507299
-      address: "0xc904C95D0cbf50342FD92C8ab4764819F5641808"
+      startBlock: 8404325
+      address: "0xB2637b0AD76eCc5c2DADbb7d4966D38751932aEe"
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -35,7 +35,9 @@ dataSources:
           handler: handleDepositEvent
         - event: InstantWithdrawal(indexed address,uint256,uint256,indexed address)
           handler: handleInstantWithdrawEvent
-      # callHandlers:
-      #   - function: deposit(address,uint256)
-      #     handler: handleDeposit
+      callHandlers:
+        - function: deposit(address,uint256)
+          handler: handleDeposit
+        - function: instantWithdraw(address,uint256)
+          handler: handleInstantWithdraw
       file: ./src/cruize.ts
