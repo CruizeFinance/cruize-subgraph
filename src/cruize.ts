@@ -1,9 +1,8 @@
-import { Address, BigInt, log } from "@graphprotocol/graph-ts";
+import { Address, BigInt } from "@graphprotocol/graph-ts";
 import {
   CreateToken,
   Cruize,
   Deposit,
-  DepositCall,
   InstantWithdrawal,
 } from "../generated/Cruize/Cruize";
 import { Asset, Token, Transaction, User } from "../generated/schema";
@@ -14,46 +13,6 @@ import {
 } from "./helpers";
 
 const ARBITRUM_GOERLI = "0xc904C95D0cbf50342FD92C8ab4764819F5641808"
-const ETHEREUM_GOERLI = "0xB2637b0AD76eCc5c2DADbb7d4966D38751932aEe"
-
-/// @notice callhandlers will not work on arbitrum-goerli
-
-// export function handleDeposit(call:DepositCall): void {
-//   let user = User.load(call.transaction.from.toHexString());
-//   if (!user) {
-//     user = new User(call.transaction.from.toHexString());
-//     user.transactions = [];
-//   }
-//   let exist = true;
-//   // populate deposit
-//   let transaction = Transaction.load(call.transaction.hash.toHexString());
-//   if (!transaction){
-//     transaction = new Transaction(call.transaction.hash.toHexString());
-//     transaction.status = "FAILED"
-//     exist = false
-//   }
-  
-//   let asset = Asset.load(call.inputs.token.toHexString());
-//   if (asset) transaction.asset = asset.id;
-//   transaction.account = call.transaction.from;
-//   transaction.asset = call.inputs.token.toHexString();
-//   transaction.decimals = fetchTokenDecimals(call.inputs.token);
-//   transaction.amount = call.inputs.amount;
-//   transaction.txHash = call.transaction.hash;
-//   transaction.timestamp = call.block.timestamp;
-//   transaction.type = "DEPOSIT";
-
-
-//   transaction.save();
-
-//   if(!exist){
-//     let transactions = user.transactions;
-//     transactions.push(transaction.id);
-//     user.transactions = transactions;
-//     user.save();
-//   }
-// }
-
 
  // event (token, crToken , name, symbol , decimal)
 export function handleCreateToken(event: CreateToken): void {
@@ -109,7 +68,6 @@ export function handleDepositEvent(event: Deposit): void {
   }
 
   // populate deposit
-  // let transaction = Transaction.load(event.transaction.hash.toHexString());
   let transaction = new Transaction(event.transaction.hash.toHexString());
   
   let asset = Asset.load(event.params.token.toHexString());
@@ -138,8 +96,6 @@ export function handleInstantWithdrawEvent(event: InstantWithdrawal): void {
   if (!user) user = new User(event.transaction.from.toHexString());
 
   // populate withdraw
-  // let transaction = Transaction.load(event.transaction.hash.toHexString());
-  // if (!transaction)
   let transaction = new Transaction(event.transaction.hash.toHexString());
 
   let asset = Asset.load(event.params.token.toHexString());
