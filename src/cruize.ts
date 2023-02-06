@@ -13,7 +13,10 @@ import {
   fetchTokenSymbol,
 } from "./helpers";
 
+const ARBITRUM_GOERLI = "0xc904C95D0cbf50342FD92C8ab4764819F5641808"
+const ETHEREUM_GOERLI = "0xB2637b0AD76eCc5c2DADbb7d4966D38751932aEe"
 
+/// @notice callhandlers will not work on arbitrum-goerli
 
 // export function handleDeposit(call:DepositCall): void {
 //   let user = User.load(call.transaction.from.toHexString());
@@ -75,7 +78,7 @@ export function handleCreateToken(event: CreateToken): void {
 }
 
 function loadAsset(token:Address) :Asset{
-  let cruize:Cruize = Cruize.bind(Address.fromString("0xc904C95D0cbf50342FD92C8ab4764819F5641808"));
+  let cruize:Cruize = Cruize.bind(Address.fromString(ARBITRUM_GOERLI));
   let cruizeToken = cruize.cruizeTokens(token);
 
   let underlyingToken = new Token(token.toHexString());
