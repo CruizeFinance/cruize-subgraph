@@ -1,0 +1,41 @@
+specVersion: 0.0.4
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum
+    name: Cruize
+    network: arbitrum-goerli
+    source:
+      abi: Cruize
+      startBlock: 6507299
+      address: "0xc904C95D0cbf50342FD92C8ab4764819F5641808"
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - User
+        - Transaction
+        - CreateToken
+        - Asset
+        - Token
+      abis:
+        - name: Cruize
+          file: ./abis/Cruize.json
+        - name: ERC20
+          file: ./abis/ERC20.json
+        - name: ERC20NameBytes
+          file: ./abis/ERC20NameBytes.json
+        - name: ERC20SymbolBytes
+          file: ./abis/ERC20SymbolBytes.json
+      eventHandlers:
+        - event: CreateToken(indexed address,indexed address,string,string,uint8)
+          handler: handleCreateToken
+        - event: Deposit(indexed address,uint256,indexed address)
+          handler: handleDepositEvent
+        - event: InstantWithdrawal(indexed address,uint256,uint256,indexed address)
+          handler: handleInstantWithdrawEvent
+      # callHandlers:
+      #   - function: deposit(address,uint256)
+      #     handler: handleDeposit
+      file: ./src/cruize.ts

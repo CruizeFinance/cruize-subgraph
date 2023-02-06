@@ -1,0 +1,29 @@
+type User @entity {
+  id: ID!
+  transactions: [Transaction!]!
+}
+
+type Transaction @entity {
+  id: ID!
+  asset: Asset
+  account: Bytes!
+  type: String!
+  status: String!
+  decimals: BigInt!
+  amount: BigInt!
+  txHash: Bytes!
+  timestamp: BigInt!
+}
+
+type Asset @entity {
+  id: ID!
+  reserve: Token!
+  crToken: Token!
+}
+
+type Token @entity {
+  id: ID!
+  name: String!
+  symbol: String!
+  decimals: BigInt!
+}
