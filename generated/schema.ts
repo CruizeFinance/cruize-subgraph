@@ -419,6 +419,15 @@ export class Round extends Entity {
     this.set("cap", Value.fromBigInt(value));
   }
 
+  get status(): string {
+    let value = this.get("status");
+    return value!.toString();
+  }
+
+  set status(value: string) {
+    this.set("status", Value.fromString(value));
+  }
+
   get SharePerUnit(): BigInt {
     let value = this.get("SharePerUnit");
     return value!.toBigInt();
@@ -435,6 +444,15 @@ export class Round extends Entity {
 
   set lockedAmount(value: BigInt) {
     this.set("lockedAmount", Value.fromBigInt(value));
+  }
+
+  get pending(): BigInt {
+    let value = this.get("pending");
+    return value!.toBigInt();
+  }
+
+  set pending(value: BigInt) {
+    this.set("pending", Value.fromBigInt(value));
   }
 }
 
@@ -544,5 +562,176 @@ export class Token extends Entity {
 
   set decimals(value: BigInt) {
     this.set("decimals", Value.fromBigInt(value));
+  }
+
+  get type(): string {
+    let value = this.get("type");
+    return value!.toString();
+  }
+
+  set type(value: string) {
+    this.set("type", Value.fromString(value));
+  }
+
+  get info(): string | null {
+    let value = this.get("info");
+    if (!value || value.kind == ValueKind.NULL) {
+      return null;
+    } else {
+      return value.toString();
+    }
+  }
+
+  set info(value: string | null) {
+    if (!value) {
+      this.unset("info");
+    } else {
+      this.set("info", Value.fromString(<string>value));
+    }
+  }
+}
+
+export class TokenInfo extends Entity {
+  constructor(id: string) {
+    super();
+    this.set("id", Value.fromString(id));
+  }
+
+  save(): void {
+    let id = this.get("id");
+    assert(id != null, "Cannot save TokenInfo entity without an ID");
+    if (id) {
+      assert(
+        id.kind == ValueKind.STRING,
+        `Entities of type TokenInfo must have an ID of type String but the id '${id.displayData()}' is of type ${id.displayKind()}`
+      );
+      store.set("TokenInfo", id.toString(), this);
+    }
+  }
+
+  static load(id: string): TokenInfo | null {
+    return changetype<TokenInfo | null>(store.get("TokenInfo", id));
+  }
+
+  get id(): string {
+    let value = this.get("id");
+    return value!.toString();
+  }
+
+  set id(value: string) {
+    this.set("id", Value.fromString(value));
+  }
+
+  get amountInAsset(): BigInt {
+    let value = this.get("amountInAsset");
+    return value!.toBigInt();
+  }
+
+  set amountInAsset(value: BigInt) {
+    this.set("amountInAsset", Value.fromBigInt(value));
+  }
+
+  get amountInUSD(): BigInt {
+    let value = this.get("amountInUSD");
+    return value!.toBigInt();
+  }
+
+  set amountInUSD(value: BigInt) {
+    this.set("amountInUSD", Value.fromBigInt(value));
+  }
+
+  get totalDeposits(): BigInt {
+    let value = this.get("totalDeposits");
+    return value!.toBigInt();
+  }
+
+  set totalDeposits(value: BigInt) {
+    this.set("totalDeposits", Value.fromBigInt(value));
+  }
+
+  get totalWithdrawals(): BigInt {
+    let value = this.get("totalWithdrawals");
+    return value!.toBigInt();
+  }
+
+  set totalWithdrawals(value: BigInt) {
+    this.set("totalWithdrawals", Value.fromBigInt(value));
+  }
+
+  get closedRounds(): BigInt {
+    let value = this.get("closedRounds");
+    return value!.toBigInt();
+  }
+
+  set closedRounds(value: BigInt) {
+    this.set("closedRounds", Value.fromBigInt(value));
+  }
+}
+
+export class ProtocolInfo extends Entity {
+  constructor(id: string) {
+    super();
+    this.set("id", Value.fromString(id));
+  }
+
+  save(): void {
+    let id = this.get("id");
+    assert(id != null, "Cannot save ProtocolInfo entity without an ID");
+    if (id) {
+      assert(
+        id.kind == ValueKind.STRING,
+        `Entities of type ProtocolInfo must have an ID of type String but the id '${id.displayData()}' is of type ${id.displayKind()}`
+      );
+      store.set("ProtocolInfo", id.toString(), this);
+    }
+  }
+
+  static load(id: string): ProtocolInfo | null {
+    return changetype<ProtocolInfo | null>(store.get("ProtocolInfo", id));
+  }
+
+  get id(): string {
+    let value = this.get("id");
+    return value!.toString();
+  }
+
+  set id(value: string) {
+    this.set("id", Value.fromString(value));
+  }
+
+  get totalUsers(): BigInt {
+    let value = this.get("totalUsers");
+    return value!.toBigInt();
+  }
+
+  set totalUsers(value: BigInt) {
+    this.set("totalUsers", Value.fromBigInt(value));
+  }
+
+  get totalDeposits(): BigInt {
+    let value = this.get("totalDeposits");
+    return value!.toBigInt();
+  }
+
+  set totalDeposits(value: BigInt) {
+    this.set("totalDeposits", Value.fromBigInt(value));
+  }
+
+  get totalWithdrawal(): BigInt {
+    let value = this.get("totalWithdrawal");
+    return value!.toBigInt();
+  }
+
+  set totalWithdrawal(value: BigInt) {
+    this.set("totalWithdrawal", Value.fromBigInt(value));
+  }
+
+  get closedRounds(): BigInt {
+    let value = this.get("closedRounds");
+    return value!.toBigInt();
+  }
+
+  set closedRounds(value: BigInt) {
+    this.set("closedRounds", Value.fromBigInt(value));
   }
 }

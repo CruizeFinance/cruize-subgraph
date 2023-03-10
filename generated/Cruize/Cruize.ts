@@ -145,7 +145,7 @@ export class CollectVaultFee__Params {
     return this._event.parameters[0].value.toAddress();
   }
 
-  get round(): BigInt {
+  get vaultFee(): BigInt {
     return this._event.parameters[1].value.toBigInt();
   }
 }
@@ -460,6 +460,24 @@ export class Unpaused__Params {
   }
 
   get account(): Address {
+    return this._event.parameters[0].value.toAddress();
+  }
+}
+
+export class deListToken extends ethereum.Event {
+  get params(): deListToken__Params {
+    return new deListToken__Params(this);
+  }
+}
+
+export class deListToken__Params {
+  _event: deListToken;
+
+  constructor(event: deListToken) {
+    this._event = event;
+  }
+
+  get token(): Address {
     return this._event.parameters[0].value.toAddress();
   }
 }
@@ -1265,6 +1283,27 @@ export class Cruize extends ethereum.SmartContract {
     return ethereum.CallResult.fromValue(value[0].toAddress());
   }
 
+  tokensTvl(assets: Array<Address>): Array<BigInt> {
+    let result = super.call("tokensTvl", "tokensTvl(address[]):(uint256[])", [
+      ethereum.Value.fromAddressArray(assets)
+    ]);
+
+    return result[0].toBigIntArray();
+  }
+
+  try_tokensTvl(assets: Array<Address>): ethereum.CallResult<Array<BigInt>> {
+    let result = super.tryCall(
+      "tokensTvl",
+      "tokensTvl(address[]):(uint256[])",
+      [ethereum.Value.fromAddressArray(assets)]
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBigIntArray());
+  }
+
   totalTokenPending(token: Address): BigInt {
     let result = super.call(
       "totalTokenPending",
@@ -1391,32 +1430,70 @@ export class ChangeAssetStatusCall__Outputs {
   }
 }
 
-export class CloseRoundCall extends ethereum.Call {
-  get inputs(): CloseRoundCall__Inputs {
-    return new CloseRoundCall__Inputs(this);
+export class CloseTokenRoundCall extends ethereum.Call {
+  get inputs(): CloseTokenRoundCall__Inputs {
+    return new CloseTokenRoundCall__Inputs(this);
   }
 
-  get outputs(): CloseRoundCall__Outputs {
-    return new CloseRoundCall__Outputs(this);
+  get outputs(): CloseTokenRoundCall__Outputs {
+    return new CloseTokenRoundCall__Outputs(this);
   }
 }
 
-export class CloseRoundCall__Inputs {
-  _call: CloseRoundCall;
+export class CloseTokenRoundCall__Inputs {
+  _call: CloseTokenRoundCall;
 
-  constructor(call: CloseRoundCall) {
+  constructor(call: CloseTokenRoundCall) {
     this._call = call;
   }
 
   get token(): Address {
     return this._call.inputValues[0].value.toAddress();
   }
+
+  get totalTokensBalance(): BigInt {
+    return this._call.inputValues[1].value.toBigInt();
+  }
 }
 
-export class CloseRoundCall__Outputs {
-  _call: CloseRoundCall;
+export class CloseTokenRoundCall__Outputs {
+  _call: CloseTokenRoundCall;
 
-  constructor(call: CloseRoundCall) {
+  constructor(call: CloseTokenRoundCall) {
+    this._call = call;
+  }
+}
+
+export class CloseTokensRoundCall extends ethereum.Call {
+  get inputs(): CloseTokensRoundCall__Inputs {
+    return new CloseTokensRoundCall__Inputs(this);
+  }
+
+  get outputs(): CloseTokensRoundCall__Outputs {
+    return new CloseTokensRoundCall__Outputs(this);
+  }
+}
+
+export class CloseTokensRoundCall__Inputs {
+  _call: CloseTokensRoundCall;
+
+  constructor(call: CloseTokensRoundCall) {
+    this._call = call;
+  }
+
+  get tokensList(): Array<Address> {
+    return this._call.inputValues[0].value.toAddressArray();
+  }
+
+  get totalTokensBalance(): Array<BigInt> {
+    return this._call.inputValues[1].value.toBigIntArray();
+  }
+}
+
+export class CloseTokensRoundCall__Outputs {
+  _call: CloseTokensRoundCall;
+
+  constructor(call: CloseTokensRoundCall) {
     this._call = call;
   }
 }
@@ -1459,6 +1536,36 @@ export class CreateTokenCall__Outputs {
   _call: CreateTokenCall;
 
   constructor(call: CreateTokenCall) {
+    this._call = call;
+  }
+}
+
+export class DeListTokensCall extends ethereum.Call {
+  get inputs(): DeListTokensCall__Inputs {
+    return new DeListTokensCall__Inputs(this);
+  }
+
+  get outputs(): DeListTokensCall__Outputs {
+    return new DeListTokensCall__Outputs(this);
+  }
+}
+
+export class DeListTokensCall__Inputs {
+  _call: DeListTokensCall;
+
+  constructor(call: DeListTokensCall) {
+    this._call = call;
+  }
+
+  get token(): Address {
+    return this._call.inputValues[0].value.toAddress();
+  }
+}
+
+export class DeListTokensCall__Outputs {
+  _call: DeListTokensCall;
+
+  constructor(call: DeListTokensCall) {
     this._call = call;
   }
 }

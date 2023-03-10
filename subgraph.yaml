@@ -7,8 +7,8 @@ dataSources:
     network: arbitrum-goerli
     source:
       abi: Cruize
-      startBlock: 9286521
-      address: "0xBd20b3c614Dc27Cb7cDf17e00359D00194cD585E"
+      startBlock: 9449765
+      address: "0x632C4cbB61802083363662b9CC3889C7bC2C4648"
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -22,6 +22,8 @@ dataSources:
       abis:
         - name: Cruize
           file: ./abis/Cruize.json
+        - name: PriceFeed
+          file: ./abis/PriceFeed.json
         - name: ERC20
           file: ./abis/ERC20.json
         - name: ERC20NameBytes

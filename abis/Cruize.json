@@ -38,8 +38,40 @@
     "type": "error"
   },
   {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "VaultBalance",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "newCap",
+        "type": "uint256"
+      }
+    ],
+    "name": "InvalidCap",
+    "type": "error"
+  },
+  {
     "inputs": [],
     "name": "InvalidFee",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "tokenAddressArray",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "tokenBalanceArray",
+        "type": "uint256"
+      }
+    ],
+    "name": "InvalidLength",
     "type": "error"
   },
   {
@@ -115,6 +147,33 @@
       }
     ],
     "name": "NotIERC165Compliant",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "tokenBalance",
+        "type": "uint256"
+      }
+    ],
+    "name": "TokenBalanceShouldBeZero",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "TotalDeposit",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "vaultTotalBalance",
+        "type": "uint256"
+      }
+    ],
+    "name": "VaultBalanceIsLessThenTheTotalDeposit",
     "type": "error"
   },
   {
@@ -285,7 +344,7 @@
       {
         "indexed": false,
         "internalType": "uint256",
-        "name": "round",
+        "name": "vaultFee",
         "type": "uint256"
       }
     ],
@@ -582,6 +641,19 @@
     "type": "event"
   },
   {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "token",
+        "type": "address"
+      }
+    ],
+    "name": "deListToken",
+    "type": "event"
+  },
+  {
     "inputs": [],
     "name": "ETH",
     "outputs": [
@@ -679,9 +751,32 @@
         "internalType": "address",
         "name": "token",
         "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "totalTokensBalance",
+        "type": "uint256"
       }
     ],
-    "name": "closeRound",
+    "name": "closeTokenRound",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address[]",
+        "name": "tokensList",
+        "type": "address[]"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "totalTokensBalance",
+        "type": "uint256[]"
+      }
+    ],
+    "name": "closeTokensRound",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -776,6 +871,19 @@
       }
     ],
     "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "token",
+        "type": "address"
+      }
+    ],
+    "name": "deListTokens",
+    "outputs": [],
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
@@ -1371,6 +1479,25 @@
         "internalType": "address",
         "name": "",
         "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address[]",
+        "name": "assets",
+        "type": "address[]"
+      }
+    ],
+    "name": "tokensTvl",
+    "outputs": [
+      {
+        "internalType": "uint256[]",
+        "name": "",
+        "type": "uint256[]"
       }
     ],
     "stateMutability": "view",

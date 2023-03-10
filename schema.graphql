@@ -41,8 +41,10 @@ type Round @entity {
   round:BigInt!
   token: Token!
   cap: BigInt!
+  status:String!
   SharePerUnit: BigInt!
   lockedAmount: BigInt!
+  pending: BigInt!
 }
 
 type Asset @entity {
@@ -56,4 +58,23 @@ type Token @entity {
   name: String!
   symbol: String!
   decimals: BigInt!
+  type: String!
+  info: TokenInfo
+}
+
+type TokenInfo @entity {
+  id: ID!
+  amountInAsset: BigInt!
+  amountInUSD: BigInt!
+  totalDeposits: BigInt!
+  totalWithdrawals: BigInt!
+  closedRounds: BigInt!
+}
+
+type ProtocolInfo @entity {
+  id: ID!
+  totalUsers:BigInt!
+  totalDeposits:BigInt!
+  totalWithdrawal:BigInt!
+  closedRounds:BigInt!
 }

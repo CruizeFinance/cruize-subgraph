@@ -12,16 +12,29 @@ import { ERC20 } from "../generated/Cruize/ERC20";
 import { ERC20SymbolBytes } from "../generated/Cruize/ERC20SymbolBytes";
 import { ERC20NameBytes } from "../generated/Cruize/ERC20NameBytes";
 import { Cruize } from "../generated/Cruize/Cruize";
+import { PriceFeed } from "../generated/Cruize/PriceFeed";
+
 import { Asset, Token } from "../generated/schema";
 export const ADDRESS_ZERO = "0x0000000000000000000000000000000000000000";
 export const ETH_ADDRESS = "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
-export const ARBITRUM_GOERLI = Address.fromString("0xBd20b3c614Dc27Cb7cDf17e00359D00194cD585E")
+export const ARBITRUM_GOERLI = Address.fromString("0x632C4cbB61802083363662b9CC3889C7bC2C4648")
+
+const ORACLES = new Map<string,string>();
+ORACLES.set("0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE","0x62CAe0FA2da220f43a51F86Db2EDb36DcA9A5A08")  // ETH/USD | 8 DECIMALS
+ORACLES.set("0x0BA9C96583F0F1b192872A05e3c4Bc759afD36B2","0x62CAe0FA2da220f43a51F86Db2EDb36DcA9A5A08")  // WETH/USD | 8 DECIMALS
+ORACLES.set("0xff737BA76F49bf82D7f13378d787685B0c6669Db","0x6550bc2301936011c1334555e62A87705A81C12C")  // BTC/USD | 8 DECIMALS
+ORACLES.set("0x7Ef1F6bBEe3CA066b31642fFc53D42C5435C6937","0x1692Bdd32F31b831caAc1b0c9fAF68613682813b")  // USDC/USD | 8 DECIMALS
 
 export let ZERO_BI = BigInt.fromI32(0);
 export let ONE_BI = BigInt.fromI32(1);
 export let ZERO_BD = BigDecimal.fromString("0");
 export let ONE_BD = BigDecimal.fromString("1");
 export let BI_18 = BigInt.fromI32(18);
+export let TEN_TO = BigInt.fromI32(10)
+
+export function toPower(power:BigInt):BigInt {
+  return TEN_TO.pow(u8(power.toU32()));
+}
 
 export function exponentToBigDecimal(decimals: BigInt): BigDecimal {
   let bd = BigDecimal.fromString("1");
@@ -88,11 +101,13 @@ export function isNullEthValue(value: string): boolean {
 class Vault {
   round:BigInt;
   lockedAmount:BigInt;
+  pending:BigInt;
   cap:BigInt;
-  constructor(_round:BigInt,_lockedAmount:BigInt, _cap:BigInt) {
-    this.round  = _round;
-    this.lockedAmount  = _lockedAmount;
+  constructor(_round:BigInt,_lockedAmount:BigInt, _pending:BigInt,_cap:BigInt) {
     this.cap  = _cap;
+    this.round  = _round;
+    this.pending  = _pending;
+    this.lockedAmount  = _lockedAmount;
   }
 }
 
@@ -100,13 +115,19 @@ export function fetchVault(token:Address):Vault {
   let cruize = Cruize.bind(ARBITRUM_GOERLI);
   let vault = cruize.try_vaults(token);
   if(vault.reverted){
-    return new Vault(ONE_BI,ZERO_BI,ZERO_BI);
+    return new Vault(ONE_BI,ZERO_BI,ZERO_BI,ZERO_BI);
   }
   return new Vault(
     BigInt.fromU64(vault.value.value0),
     vault.value.value1,
+    vault.value.value2,
     vault.value.value4
   )
+}
+
+export function getPrice(token:string):BigInt {
+  let oracle = PriceFeed.bind(Address.fromString(ORACLES.get(token)));
+  return oracle.latestAnswer();
 }
 
 export function loadAsset(token:Address) :Asset{

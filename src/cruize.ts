@@ -9,19 +9,21 @@ import {
   InstantWithdrawal,
   StandardWithdrawal,
 } from "../generated/Cruize/Cruize";
-import { Asset, DepositReceipt, Round, Token, Transaction, User, WithdrawReceipt } from "../generated/schema";
+import { Asset, DepositReceipt, ProtocolInfo, Round, Token, TokenInfo, Transaction, User, WithdrawReceipt } from "../generated/schema";
 import {
   ARBITRUM_GOERLI,
+  BI_18,
   ETH_ADDRESS,
   fetchTokenDecimals,
   fetchTokenName,
   fetchTokenSymbol,
   fetchVault,
+  getPrice,
   loadAsset,
   ONE_BI,
+  toPower,
   ZERO_BI,
 } from "./helpers";
-
 
  // event (token, crToken , tokenName, tokenSymbol , decimal ,tokenCap)
 export function handleCreateToken(event: CreateToken): void {
@@ -29,6 +31,7 @@ export function handleCreateToken(event: CreateToken): void {
 
   let underlyingToken = new Token(event.params.token.toHexString());
 
+  underlyingToken.type = "BASE";
   if(event.params.token.toHexString() == ETH_ADDRESS){
     underlyingToken.name = "ETH";
     underlyingToken.symbol = "ETH";
@@ -39,10 +42,21 @@ export function handleCreateToken(event: CreateToken): void {
     underlyingToken.decimals = fetchTokenDecimals(event.params.token);
   }
 
+  let tokenInfo = new TokenInfo(event.params.token.toHexString());
+  tokenInfo.amountInAsset = ZERO_BI;
+  tokenInfo.amountInUSD = ZERO_BI;
+  tokenInfo.totalDeposits = ZERO_BI;
+  tokenInfo.totalWithdrawals = ZERO_BI;
+  tokenInfo.closedRounds = ZERO_BI;
+  tokenInfo.save();
+
+  underlyingToken.info = tokenInfo.id;
+
 
   let crToken = new Token(event.params.crToken.toHexString());
   crToken.name = event.params.tokenName;
   crToken.symbol = event.params.tokenSymbol;
+  crToken.type = "LP";
   crToken.decimals = BigInt.fromU64(event.params.decimal);
 
   underlyingToken.save();
@@ -52,18 +66,35 @@ export function handleCreateToken(event: CreateToken): void {
   asset.crToken = crToken.id;
   asset.save();
 
-  let round = new Round(`${BigInt.fromU64(1).toString()}-${event.params.token.toHexString()}`);
+  let round = new Round(BigInt.fromU64(1).toString());
   round.token = underlyingToken.id;
   round.fee = ONE_BI;
   round.round = ONE_BI;
+  round.pending = ZERO_BI;
   round.cap = event.params.tokenCap;
   round.SharePerUnit = ONE_BI;
   round.lockedAmount = ZERO_BI;
+  round.status = "OPEN";
   round.save()
+
+  // populate Protocol Info 
+  let to = event.transaction.to;
+  if(to){
+    let protocolInfo = ProtocolInfo.load(to.toHexString());
+    if(!protocolInfo)
+      protocolInfo = new ProtocolInfo(to.toHexString());
+    protocolInfo.totalUsers = ZERO_BI;
+    protocolInfo.totalDeposits = ZERO_BI;
+    protocolInfo.totalWithdrawal = ZERO_BI;
+    protocolInfo.closedRounds = ZERO_BI;
+    protocolInfo.save();
+  }
 }
 
 // event (account ,amount , token )
 export function handleDepositEvent(event: Deposit): void {
+  
+  let newUser = false;
   let user = User.load(event.transaction.from.toHexString());
   if (!user) {
     user = new User(event.transaction.from.toHexString());
@@ -72,10 +103,39 @@ export function handleDepositEvent(event: Deposit): void {
     user.lastDeposit = null
     user.lastWithdraw = null
     user.transactions = [];
+    newUser = true;
   }
-
   // fetch token vault
   let vault = fetchVault(event.params.token);
+
+  // update TokenInfo
+  let tokenInfo = TokenInfo.load(event.params.token.toHexString())
+  if(tokenInfo){
+    const decimals = fetchTokenDecimals(event.params.token)
+    tokenInfo.totalDeposits = tokenInfo.totalDeposits.plus(ONE_BI);
+    tokenInfo.amountInAsset = vault.lockedAmount.plus(vault.pending);
+    tokenInfo.amountInUSD = tokenInfo.amountInAsset.times(getPrice(event.params.token.toString())).div(toPower(decimals));
+    tokenInfo.save();
+  }
+
+  // update ProtocolInfo
+  let to = event.transaction.to;
+  if(to){
+    let protocolInfo = ProtocolInfo.load(to.toHexString());
+    if(protocolInfo){
+      protocolInfo.totalDeposits = protocolInfo.totalDeposits.plus(ONE_BI);
+      protocolInfo.totalUsers = newUser ? protocolInfo.totalUsers.plus(ONE_BI) : protocolInfo.totalUsers;
+      protocolInfo.save()
+    }
+  }
+
+
+  // update Round
+  let currentRound = Round.load(vault.round.toString());
+  if(currentRound){
+    currentRound.pending = currentRound.pending.plus(event.params.amount);
+    currentRound.save();
+  }
 
   // populate deposit receipt
   let depositReceipt = new DepositReceipt(event.transaction.hash.toHexString())
@@ -113,8 +173,28 @@ export function handleDepositEvent(event: Deposit): void {
 export function handleInstantWithdrawEvent(event: InstantWithdrawal): void {
   let user = User.load(event.transaction.from.toHexString());
   if (!user) user = new User(event.transaction.from.toHexString());
-  
   user.totalWithdraws = user.totalWithdraws.plus(event.params.amount);
+  
+  // fetch token vault
+  let vault = fetchVault(event.params.token);
+
+  // update TokenInfo
+  let tokenInfo = TokenInfo.load(event.params.token.toHexString())
+  if(tokenInfo){
+    const decimals = fetchTokenDecimals(event.params.token);
+    tokenInfo.totalWithdrawals = tokenInfo.totalWithdrawals.plus(ONE_BI);
+    tokenInfo.amountInAsset = vault.lockedAmount.plus(vault.pending);
+    tokenInfo.amountInUSD = tokenInfo.amountInAsset.times(getPrice(event.params.token.toString())).div(toPower(decimals));
+    tokenInfo.save();
+  }
+
+  // update Round
+  let currentRound = Round.load(event.params.currentRound.toString());
+  if(currentRound){
+    currentRound.pending = currentRound.pending.minus(event.params.amount);
+    currentRound.save();
+  }
+
 
   // populate withdraw
   let transaction = new Transaction(event.transaction.hash.toHexString());
@@ -190,6 +270,16 @@ export function handleStandardWithdrawalEvent(event: StandardWithdrawal ):void {
   // fetch token vault
   let vault = fetchVault(event.params.token);
 
+  // update TokenInfo
+  let tokenInfo = TokenInfo.load(event.params.token.toHexString())
+  if(tokenInfo){
+    const decimals = fetchTokenDecimals(event.params.token)
+    tokenInfo.totalWithdrawals = tokenInfo.totalWithdrawals.plus(ONE_BI);
+    tokenInfo.amountInAsset = vault.lockedAmount.plus(vault.pending);
+    tokenInfo.amountInUSD = tokenInfo.amountInAsset.times(getPrice(event.params.token.toString())).div(toPower(decimals));
+    tokenInfo.save();
+  }
+
   // populate withdraw
   let transaction = new Transaction(event.transaction.hash.toHexString());
 
@@ -214,14 +304,14 @@ export function handleStandardWithdrawalEvent(event: StandardWithdrawal ):void {
   user.save();
 
   // populate withdraw receipt
-  if(user.lastWithdraw){
-    let withdrawReceipt = WithdrawReceipt.load(user.lastWithdraw)
-    if(withdrawReceipt){
-      withdrawReceipt.isRequested = false;
-      withdrawReceipt.amount = event.params.amount;
-      withdrawReceipt.save();
-    }
-  }
+  // if(user.lastWithdraw){
+  //   let withdrawReceipt = WithdrawReceipt.load(user.lastWithdraw)
+  //   if(withdrawReceipt){
+  //     withdrawReceipt.isRequested = false;
+  //     withdrawReceipt.amount = event.params.amount;
+  //     withdrawReceipt.save();
+  //   }
+  // }
 }
 
 }
@@ -230,16 +320,38 @@ export function handleStandardWithdrawalEvent(event: StandardWithdrawal ):void {
 export function handleCloseRound(event: CloseRound ):void {
   const vault = fetchVault(event.params.token);
 
-  let currentRound = Round.load(`${event.params.round.toString()}-${event.params.token.toHexString()}`);
+  let to = event.transaction.to;
+  if(to){
+    let protocolInfo = ProtocolInfo.load(to.toHexString());
+    if(protocolInfo){
+      protocolInfo.closedRounds = protocolInfo.closedRounds.plus(ONE_BI);
+      protocolInfo.save()
+    }
+  }
+
+  // update TokenInfo
+  let tokenInfo = TokenInfo.load(event.params.token.toHexString())
+  if(tokenInfo){
+    const decimals = fetchTokenDecimals(event.params.token)
+    tokenInfo.closedRounds = tokenInfo.closedRounds.plus(ONE_BI);
+    tokenInfo.amountInAsset = vault.lockedAmount.plus(vault.pending);
+    tokenInfo.amountInUSD = tokenInfo.amountInAsset.times(getPrice(event.params.token.toString())).div(toPower(decimals));
+    tokenInfo.save();
+  }
+
+  let currentRound = Round.load(event.params.round.toString());
   if(currentRound){
     currentRound.SharePerUnit = event.params.SharePerUnit;
+    currentRound.status = "CLOSED";
     currentRound.save();
   }
 
-    let nextRound = new Round(`${(event.params.round+1).toString()}-${event.params.token.toHexString()}`);
+    let nextRound = new Round((event.params.round+1).toString());
     nextRound.round = BigInt.fromU64(event.params.round+1);
     nextRound.cap = vault.cap;
+    nextRound.pending = ZERO_BI;
     nextRound.fee = ZERO_BI;
+    nextRound.status = "OPEN";
     nextRound.token = event.params.token.toHexString()
     nextRound.SharePerUnit = ZERO_BI;
     nextRound.lockedAmount = event.params.lockedAmount;
@@ -250,9 +362,9 @@ export function handleCloseRound(event: CloseRound ):void {
 // event (token , fee)
 export function handleFeeCollection(event: CollectVaultFee ):void {
   const vault = fetchVault(event.params.token);
-  let currentRound = Round.load(`${vault.round.minus(BigInt.fromU64(1))}-${event.params.token.toHexString()}`);
+  let currentRound = Round.load(vault.round.minus(ONE_BI).toString());
   if(currentRound){
-    currentRound.fee = event.params.round;
+    currentRound.fee = event.params.vaultFee;
     currentRound.save();
   }
 }
