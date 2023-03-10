@@ -7,6 +7,8 @@ import {
   Address,
   Bytes,
   log,
+  json,
+  TypedMap,
 } from "@graphprotocol/graph-ts";
 import { ERC20 } from "../generated/Cruize/ERC20";
 import { ERC20SymbolBytes } from "../generated/Cruize/ERC20SymbolBytes";
@@ -17,13 +19,13 @@ import { PriceFeed } from "../generated/Cruize/PriceFeed";
 import { Asset, Token } from "../generated/schema";
 export const ADDRESS_ZERO = "0x0000000000000000000000000000000000000000";
 export const ETH_ADDRESS = "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
-export const ARBITRUM_GOERLI = Address.fromString("0x632C4cbB61802083363662b9CC3889C7bC2C4648")
+export const ARBITRUM_GOERLI = Address.fromString("0x632C4cbB61802083363662b9CC3889C7bC2C4648");
 
-const ORACLES = new Map<string,string>();
-ORACLES.set("0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE","0x62CAe0FA2da220f43a51F86Db2EDb36DcA9A5A08")  // ETH/USD | 8 DECIMALS
-ORACLES.set("0x0BA9C96583F0F1b192872A05e3c4Bc759afD36B2","0x62CAe0FA2da220f43a51F86Db2EDb36DcA9A5A08")  // WETH/USD | 8 DECIMALS
-ORACLES.set("0xff737BA76F49bf82D7f13378d787685B0c6669Db","0x6550bc2301936011c1334555e62A87705A81C12C")  // BTC/USD | 8 DECIMALS
-ORACLES.set("0x7Ef1F6bBEe3CA066b31642fFc53D42C5435C6937","0x1692Bdd32F31b831caAc1b0c9fAF68613682813b")  // USDC/USD | 8 DECIMALS
+const ORACLES = new TypedMap<string,string>();
+ORACLES.set("0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE".toLowerCase(),"0x62CAe0FA2da220f43a51F86Db2EDb36DcA9A5A08")  // ETH/USD | 8 DECIMALS
+ORACLES.set("0x0BA9C96583F0F1b192872A05e3c4Bc759afD36B2".toLowerCase(),"0x62CAe0FA2da220f43a51F86Db2EDb36DcA9A5A08")  // WETH/USD | 8 DECIMALS
+ORACLES.set("0xff737BA76F49bf82D7f13378d787685B0c6669Db".toLowerCase(),"0x6550bc2301936011c1334555e62A87705A81C12C")  // BTC/USD | 8 DECIMALS
+ORACLES.set("0x7Ef1F6bBEe3CA066b31642fFc53D42C5435C6937".toLowerCase(),"0x1692Bdd32F31b831caAc1b0c9fAF68613682813b")  // USDC/USD | 8 DECIMALS
 
 export let ZERO_BI = BigInt.fromI32(0);
 export let ONE_BI = BigInt.fromI32(1);
@@ -126,8 +128,13 @@ export function fetchVault(token:Address):Vault {
 }
 
 export function getPrice(token:string):BigInt {
-  let oracle = PriceFeed.bind(Address.fromString(ORACLES.get(token)));
-  return oracle.latestAnswer();
+  log.debug("Oracle address {} , {}",[token,ORACLES.mustGet(token)]);
+    let oracle = ORACLES.get(token);
+    if(oracle){
+      let instace = PriceFeed.bind(Address.fromString(oracle));
+      return instace.latestAnswer();
+    }
+    return ONE_BI;
 }
 
 export function loadAsset(token:Address) :Asset{
@@ -210,6 +217,8 @@ export function fetchTokenTotalSupply(tokenAddress: Address): BigInt {
 }
 
 export function fetchTokenDecimals(tokenAddress: Address): BigInt {
+
+  if(tokenAddress.equals(Address.fromString(ETH_ADDRESS))) return BI_18;
   // hardcode overrides
   let contract = ERC20.bind(tokenAddress);
   // try types uint8 for decimals

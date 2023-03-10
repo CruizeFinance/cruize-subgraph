@@ -114,7 +114,7 @@ export function handleDepositEvent(event: Deposit): void {
     const decimals = fetchTokenDecimals(event.params.token)
     tokenInfo.totalDeposits = tokenInfo.totalDeposits.plus(ONE_BI);
     tokenInfo.amountInAsset = vault.lockedAmount.plus(vault.pending);
-    tokenInfo.amountInUSD = tokenInfo.amountInAsset.times(getPrice(event.params.token.toString())).div(toPower(decimals));
+    tokenInfo.amountInUSD = tokenInfo.amountInAsset.times(getPrice(event.params.token.toHexString().toLowerCase())).div(toPower(decimals));
     tokenInfo.save();
   }
 
@@ -184,7 +184,7 @@ export function handleInstantWithdrawEvent(event: InstantWithdrawal): void {
     const decimals = fetchTokenDecimals(event.params.token);
     tokenInfo.totalWithdrawals = tokenInfo.totalWithdrawals.plus(ONE_BI);
     tokenInfo.amountInAsset = vault.lockedAmount.plus(vault.pending);
-    tokenInfo.amountInUSD = tokenInfo.amountInAsset.times(getPrice(event.params.token.toString())).div(toPower(decimals));
+    tokenInfo.amountInUSD = tokenInfo.amountInAsset.times(getPrice(event.params.token.toHexString())).div(toPower(decimals));
     tokenInfo.save();
   }
 
@@ -276,7 +276,7 @@ export function handleStandardWithdrawalEvent(event: StandardWithdrawal ):void {
     const decimals = fetchTokenDecimals(event.params.token)
     tokenInfo.totalWithdrawals = tokenInfo.totalWithdrawals.plus(ONE_BI);
     tokenInfo.amountInAsset = vault.lockedAmount.plus(vault.pending);
-    tokenInfo.amountInUSD = tokenInfo.amountInAsset.times(getPrice(event.params.token.toString())).div(toPower(decimals));
+    tokenInfo.amountInUSD = tokenInfo.amountInAsset.times(getPrice(event.params.token.toHexString().toLowerCase())).div(toPower(decimals));
     tokenInfo.save();
   }
 
@@ -335,7 +335,7 @@ export function handleCloseRound(event: CloseRound ):void {
     const decimals = fetchTokenDecimals(event.params.token)
     tokenInfo.closedRounds = tokenInfo.closedRounds.plus(ONE_BI);
     tokenInfo.amountInAsset = vault.lockedAmount.plus(vault.pending);
-    tokenInfo.amountInUSD = tokenInfo.amountInAsset.times(getPrice(event.params.token.toString())).div(toPower(decimals));
+    tokenInfo.amountInUSD = tokenInfo.amountInAsset.times(getPrice(event.params.token.toHexString())).div(toPower(decimals));
     tokenInfo.save();
   }
 
