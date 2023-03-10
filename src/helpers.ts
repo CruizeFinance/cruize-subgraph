@@ -11,8 +11,12 @@ import {
 import { ERC20 } from "../generated/Cruize/ERC20";
 import { ERC20SymbolBytes } from "../generated/Cruize/ERC20SymbolBytes";
 import { ERC20NameBytes } from "../generated/Cruize/ERC20NameBytes";
+import { Cruize } from "../generated/Cruize/Cruize";
+import { Asset, Token } from "../generated/schema";
 export const ADDRESS_ZERO = "0x0000000000000000000000000000000000000000";
 export const ETH_ADDRESS = "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+export const ARBITRUM_GOERLI = Address.fromString("0xBd20b3c614Dc27Cb7cDf17e00359D00194cD585E")
+
 export let ZERO_BI = BigInt.fromI32(0);
 export let ONE_BI = BigInt.fromI32(1);
 export let ZERO_BD = BigDecimal.fromString("0");
@@ -81,6 +85,54 @@ export function isNullEthValue(value: string): boolean {
   );
 }
 
+class Vault {
+  round:BigInt;
+  lockedAmount:BigInt;
+  cap:BigInt;
+  constructor(_round:BigInt,_lockedAmount:BigInt, _cap:BigInt) {
+    this.round  = _round;
+    this.lockedAmount  = _lockedAmount;
+    this.cap  = _cap;
+  }
+}
+
+export function fetchVault(token:Address):Vault {
+  let cruize = Cruize.bind(ARBITRUM_GOERLI);
+  let vault = cruize.try_vaults(token);
+  if(vault.reverted){
+    return new Vault(ONE_BI,ZERO_BI,ZERO_BI);
+  }
+  return new Vault(
+    BigInt.fromU64(vault.value.value0),
+    vault.value.value1,
+    vault.value.value4
+  )
+}
+
+export function loadAsset(token:Address) :Asset{
+  let cruize:Cruize = Cruize.bind(ARBITRUM_GOERLI);
+  let cruizeToken = cruize.cruizeTokens(token);
+
+  let underlyingToken = new Token(token.toHexString());
+  underlyingToken.name = fetchTokenName(token);
+  underlyingToken.symbol = fetchTokenSymbol(token);
+  underlyingToken.decimals = fetchTokenDecimals(token);
+
+  let crToken = new Token(token.toHexString());
+  crToken.name = fetchTokenName(cruizeToken);
+  crToken.symbol = fetchTokenSymbol(cruizeToken);
+  crToken.decimals = fetchTokenDecimals(cruizeToken);
+
+  underlyingToken.save();
+  crToken.save();
+
+  let asset = new Asset(token.toHexString())
+  asset.reserve = underlyingToken.id;
+  asset.crToken = crToken.id;
+  asset.save()
+  return asset;
+}
+
 export function fetchTokenSymbol(tokenAddress: Address): string {
   let contract = ERC20.bind(tokenAddress);
   let contractSymbolBytes = ERC20SymbolBytes.bind(tokenAddress);
@@ -107,12 +159,10 @@ export function fetchTokenName(tokenAddress: Address): string {
   let contract = ERC20.bind(tokenAddress);
   let contractNameBytes = ERC20NameBytes.bind(tokenAddress);
   
-  log.info("Fetch Token Name {}",[contract._address.toHexString()]);
 
   // try types string and bytes32 for name
   let nameValue = "unknown";
   let nameResult = contract.try_name();
-  log.info("After Call Fetch Token Name {}",[contract._address.toHexString()]);
   if (nameResult.reverted) {
     let nameResultBytes = contractNameBytes.try_name();
     if (!nameResultBytes.reverted) {
@@ -122,7 +172,6 @@ export function fetchTokenName(tokenAddress: Address): string {
       }
     }
   } else {
-  log.info("Else Fetch Token Name {}",[nameResult.value]);
     nameValue = nameResult.value;
   }
 

@@ -1,14 +1,8 @@
 {
-  "goerli": {
-    "Cruize": {
-      "address": "0xB2637b0AD76eCc5c2DADbb7d4966D38751932aEe",
-      "startBlock":"8404325"
-    }
-  },
   "arbitrum-goerli": {
     "Cruize": {
-      "address": "0xc904C95D0cbf50342FD92C8ab4764819F5641808",
-      "startBlock":"6507299"
+      "address": "0xBd20b3c614Dc27Cb7cDf17e00359D00194cD585E",
+      "startBlock":9286521
     }
   }
 }

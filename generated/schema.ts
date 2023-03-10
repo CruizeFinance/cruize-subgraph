@@ -42,6 +42,58 @@ export class User extends Entity {
     this.set("id", Value.fromString(value));
   }
 
+  get totalDeposits(): BigInt {
+    let value = this.get("totalDeposits");
+    return value!.toBigInt();
+  }
+
+  set totalDeposits(value: BigInt) {
+    this.set("totalDeposits", Value.fromBigInt(value));
+  }
+
+  get totalWithdraws(): BigInt {
+    let value = this.get("totalWithdraws");
+    return value!.toBigInt();
+  }
+
+  set totalWithdraws(value: BigInt) {
+    this.set("totalWithdraws", Value.fromBigInt(value));
+  }
+
+  get lastDeposit(): string | null {
+    let value = this.get("lastDeposit");
+    if (!value || value.kind == ValueKind.NULL) {
+      return null;
+    } else {
+      return value.toString();
+    }
+  }
+
+  set lastDeposit(value: string | null) {
+    if (!value) {
+      this.unset("lastDeposit");
+    } else {
+      this.set("lastDeposit", Value.fromString(<string>value));
+    }
+  }
+
+  get lastWithdraw(): string | null {
+    let value = this.get("lastWithdraw");
+    if (!value || value.kind == ValueKind.NULL) {
+      return null;
+    } else {
+      return value.toString();
+    }
+  }
+
+  set lastWithdraw(value: string | null) {
+    if (!value) {
+      this.unset("lastWithdraw");
+    } else {
+      this.set("lastWithdraw", Value.fromString(<string>value));
+    }
+  }
+
   get transactions(): Array<string> {
     let value = this.get("transactions");
     return value!.toStringArray();
@@ -49,6 +101,133 @@ export class User extends Entity {
 
   set transactions(value: Array<string>) {
     this.set("transactions", Value.fromStringArray(value));
+  }
+}
+
+export class DepositReceipt extends Entity {
+  constructor(id: string) {
+    super();
+    this.set("id", Value.fromString(id));
+  }
+
+  save(): void {
+    let id = this.get("id");
+    assert(id != null, "Cannot save DepositReceipt entity without an ID");
+    if (id) {
+      assert(
+        id.kind == ValueKind.STRING,
+        `Entities of type DepositReceipt must have an ID of type String but the id '${id.displayData()}' is of type ${id.displayKind()}`
+      );
+      store.set("DepositReceipt", id.toString(), this);
+    }
+  }
+
+  static load(id: string): DepositReceipt | null {
+    return changetype<DepositReceipt | null>(store.get("DepositReceipt", id));
+  }
+
+  get id(): string {
+    let value = this.get("id");
+    return value!.toString();
+  }
+
+  set id(value: string) {
+    this.set("id", Value.fromString(value));
+  }
+
+  get round(): BigInt {
+    let value = this.get("round");
+    return value!.toBigInt();
+  }
+
+  set round(value: BigInt) {
+    this.set("round", Value.fromBigInt(value));
+  }
+
+  get amount(): BigInt {
+    let value = this.get("amount");
+    return value!.toBigInt();
+  }
+
+  set amount(value: BigInt) {
+    this.set("amount", Value.fromBigInt(value));
+  }
+}
+
+export class WithdrawReceipt extends Entity {
+  constructor(id: string) {
+    super();
+    this.set("id", Value.fromString(id));
+  }
+
+  save(): void {
+    let id = this.get("id");
+    assert(id != null, "Cannot save WithdrawReceipt entity without an ID");
+    if (id) {
+      assert(
+        id.kind == ValueKind.STRING,
+        `Entities of type WithdrawReceipt must have an ID of type String but the id '${id.displayData()}' is of type ${id.displayKind()}`
+      );
+      store.set("WithdrawReceipt", id.toString(), this);
+    }
+  }
+
+  static load(id: string): WithdrawReceipt | null {
+    return changetype<WithdrawReceipt | null>(store.get("WithdrawReceipt", id));
+  }
+
+  get id(): string {
+    let value = this.get("id");
+    return value!.toString();
+  }
+
+  set id(value: string) {
+    this.set("id", Value.fromString(value));
+  }
+
+  get account(): Bytes {
+    let value = this.get("account");
+    return value!.toBytes();
+  }
+
+  set account(value: Bytes) {
+    this.set("account", Value.fromBytes(value));
+  }
+
+  get round(): BigInt {
+    let value = this.get("round");
+    return value!.toBigInt();
+  }
+
+  set round(value: BigInt) {
+    this.set("round", Value.fromBigInt(value));
+  }
+
+  get shares(): BigInt {
+    let value = this.get("shares");
+    return value!.toBigInt();
+  }
+
+  set shares(value: BigInt) {
+    this.set("shares", Value.fromBigInt(value));
+  }
+
+  get amount(): BigInt {
+    let value = this.get("amount");
+    return value!.toBigInt();
+  }
+
+  set amount(value: BigInt) {
+    this.set("amount", Value.fromBigInt(value));
+  }
+
+  get isRequested(): boolean {
+    let value = this.get("isRequested");
+    return value!.toBoolean();
+  }
+
+  set isRequested(value: boolean) {
+    this.set("isRequested", Value.fromBoolean(value));
   }
 }
 
@@ -83,13 +262,30 @@ export class Transaction extends Entity {
     this.set("id", Value.fromString(value));
   }
 
-  get asset(): string {
-    let value = this.get("asset");
-    return value!.toString();
+  get round(): BigInt {
+    let value = this.get("round");
+    return value!.toBigInt();
   }
 
-  set asset(value: string) {
-    this.set("asset", Value.fromString(value));
+  set round(value: BigInt) {
+    this.set("round", Value.fromBigInt(value));
+  }
+
+  get asset(): string | null {
+    let value = this.get("asset");
+    if (!value || value.kind == ValueKind.NULL) {
+      return null;
+    } else {
+      return value.toString();
+    }
+  }
+
+  set asset(value: string | null) {
+    if (!value) {
+      this.unset("asset");
+    } else {
+      this.set("asset", Value.fromString(<string>value));
+    }
   }
 
   get account(): Bytes {
@@ -153,6 +349,92 @@ export class Transaction extends Entity {
 
   set timestamp(value: BigInt) {
     this.set("timestamp", Value.fromBigInt(value));
+  }
+}
+
+export class Round extends Entity {
+  constructor(id: string) {
+    super();
+    this.set("id", Value.fromString(id));
+  }
+
+  save(): void {
+    let id = this.get("id");
+    assert(id != null, "Cannot save Round entity without an ID");
+    if (id) {
+      assert(
+        id.kind == ValueKind.STRING,
+        `Entities of type Round must have an ID of type String but the id '${id.displayData()}' is of type ${id.displayKind()}`
+      );
+      store.set("Round", id.toString(), this);
+    }
+  }
+
+  static load(id: string): Round | null {
+    return changetype<Round | null>(store.get("Round", id));
+  }
+
+  get id(): string {
+    let value = this.get("id");
+    return value!.toString();
+  }
+
+  set id(value: string) {
+    this.set("id", Value.fromString(value));
+  }
+
+  get fee(): BigInt {
+    let value = this.get("fee");
+    return value!.toBigInt();
+  }
+
+  set fee(value: BigInt) {
+    this.set("fee", Value.fromBigInt(value));
+  }
+
+  get round(): BigInt {
+    let value = this.get("round");
+    return value!.toBigInt();
+  }
+
+  set round(value: BigInt) {
+    this.set("round", Value.fromBigInt(value));
+  }
+
+  get token(): string {
+    let value = this.get("token");
+    return value!.toString();
+  }
+
+  set token(value: string) {
+    this.set("token", Value.fromString(value));
+  }
+
+  get cap(): BigInt {
+    let value = this.get("cap");
+    return value!.toBigInt();
+  }
+
+  set cap(value: BigInt) {
+    this.set("cap", Value.fromBigInt(value));
+  }
+
+  get SharePerUnit(): BigInt {
+    let value = this.get("SharePerUnit");
+    return value!.toBigInt();
+  }
+
+  set SharePerUnit(value: BigInt) {
+    this.set("SharePerUnit", Value.fromBigInt(value));
+  }
+
+  get lockedAmount(): BigInt {
+    let value = this.get("lockedAmount");
+    return value!.toBigInt();
+  }
+
+  set lockedAmount(value: BigInt) {
+    this.set("lockedAmount", Value.fromBigInt(value));
   }
 }
 

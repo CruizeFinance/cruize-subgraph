@@ -1,27 +1,26 @@
 import { newMockEvent } from "matchstick-as"
 import { ethereum, Address, BigInt } from "@graphprotocol/graph-ts"
 import {
-  CreateTokenEvent,
-  DepositEvent,
-  WithdrawEvent
+  CreateToken
 } from "../generated/Cruize/Cruize"
 
 
 export function createCreateTokenEvent(
-  asset: Address,
+  token: Address,
   crToken: Address,
-  name: string,
-  symbol: string,
-  decimal: i32
-): CreateTokenEvent {
-  let createTokenEvent = changetype<CreateTokenEvent>(newMockEvent())
+  tokenName: string,
+  tokenSymbol: string,
+  decimal: i32,
+  tokenCap:i32
+): CreateToken {
+  let createTokenEvent = changetype<CreateToken>(newMockEvent())
 
   createTokenEvent.parameters = new Array()
 
   createTokenEvent.parameters.push(
     new ethereum.EventParam(
-      "asset",
-      ethereum.Value.fromAddress(asset)
+      "token",
+      ethereum.Value.fromAddress(token)
     )
   )
   createTokenEvent.parameters.push(
@@ -31,12 +30,12 @@ export function createCreateTokenEvent(
     )
   )
   createTokenEvent.parameters.push(
-    new ethereum.EventParam("name", ethereum.Value.fromString(name))
+    new ethereum.EventParam("tokenName", ethereum.Value.fromString(tokenName))
   )
   createTokenEvent.parameters.push(
     new ethereum.EventParam(
-      "symbol",
-      ethereum.Value.fromString(symbol)
+      "tokenSymbol",
+      ethereum.Value.fromString(tokenSymbol)
     )
   )
   createTokenEvent.parameters.push(
@@ -46,59 +45,67 @@ export function createCreateTokenEvent(
     )
   )
 
+  createTokenEvent.parameters.push(
+    new ethereum.EventParam(
+      "tokenCap",
+      ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(tokenCap))
+    )
+  )
+
   return createTokenEvent
 }
 
-export function createDepositEventEvent(
-  asset: Address,
-  account: Address,
-  amount: BigInt
-): DepositEvent {
-  let depositEventEvent = changetype<DepositEvent>(newMockEvent())
 
-  depositEventEvent.parameters = new Array()
+// export function createDepositEventEvent(
+//   asset: Address,
+//   account: Address,
+//   amount: BigInt
+// ): DepositEvent {
+//   let depositEventEvent = changetype<DepositEvent>(newMockEvent())
 
-  depositEventEvent.parameters.push(
-    new ethereum.EventParam("asset", ethereum.Value.fromAddress(asset))
-  )
-  depositEventEvent.parameters.push(
-    new ethereum.EventParam("account", ethereum.Value.fromAddress(account))
-  )
-  depositEventEvent.parameters.push(
-    new ethereum.EventParam(
-      "amount",
-      ethereum.Value.fromUnsignedBigInt(amount)
-    )
-  )
+//   depositEventEvent.parameters = new Array()
 
-  return depositEventEvent
-}
+//   depositEventEvent.parameters.push(
+//     new ethereum.EventParam("asset", ethereum.Value.fromAddress(asset))
+//   )
+//   depositEventEvent.parameters.push(
+//     new ethereum.EventParam("account", ethereum.Value.fromAddress(account))
+//   )
+//   depositEventEvent.parameters.push(
+//     new ethereum.EventParam(
+//       "amount",
+//       ethereum.Value.fromUnsignedBigInt(amount)
+//     )
+//   )
 
-export function createWithdrawEventEvent(
-  asset: Address,
-  amount: BigInt,
-  isPriceFloor:boolean
-): WithdrawEvent {
-  let withdrawEventEvent = changetype<WithdrawEvent>(newMockEvent())
+//   return depositEventEvent
+// }
 
-  withdrawEventEvent.parameters = new Array()
+// export function createWithdrawEventEvent(
+//   asset: Address,
+//   amount: BigInt,
+//   isPriceFloor:boolean
+// ): WithdrawEvent {
+//   let withdrawEventEvent = changetype<WithdrawEvent>(newMockEvent())
 
-  withdrawEventEvent.parameters.push(
-    new ethereum.EventParam("asset", ethereum.Value.fromAddress(asset))
-  )
-  withdrawEventEvent.parameters.push(
-    new ethereum.EventParam(
-      "amount",
-      ethereum.Value.fromUnsignedBigInt(amount)
-    )
-  )
+//   withdrawEventEvent.parameters = new Array()
 
-  withdrawEventEvent.parameters.push(
-    new ethereum.EventParam(
-      "isPriceFloor",
-      ethereum.Value.fromBoolean(isPriceFloor)
-    )
-  )
+//   withdrawEventEvent.parameters.push(
+//     new ethereum.EventParam("asset", ethereum.Value.fromAddress(asset))
+//   )
+//   withdrawEventEvent.parameters.push(
+//     new ethereum.EventParam(
+//       "amount",
+//       ethereum.Value.fromUnsignedBigInt(amount)
+//     )
+//   )
 
-  return withdrawEventEvent
-}
+//   withdrawEventEvent.parameters.push(
+//     new ethereum.EventParam(
+//       "isPriceFloor",
+//       ethereum.Value.fromBoolean(isPriceFloor)
+//     )
+//   )
+
+//   return withdrawEventEvent
+// }

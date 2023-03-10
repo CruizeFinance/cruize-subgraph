@@ -4,10 +4,10 @@
   "scripts": {
     "codegen": "graph codegen",
     "build": "graph build",
-    "deploy": "graph deploy --node https://api.studio.thegraph.com/deploy/ cruize-subgraph-starter",
+    "deploy": "graph deploy --product hosted-service --network arbitrum-goerli --network-file ./networks.json salmanbao/cruize-testing-module",
     "create-local": "graph create --node http://localhost:8020/ cruize-subgraph-starter",
     "remove-local": "graph remove --node http://localhost:8020/ cruize-subgraph-starter",
-    "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 cruize-subgraph-starter",
+    "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 salmanbao/cruize-subgraph-starter",
     "test": "graph test -d"
   },
   "dependencies": {

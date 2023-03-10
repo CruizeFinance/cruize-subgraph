@@ -7,8 +7,8 @@ dataSources:
     network: arbitrum-goerli
     source:
       abi: Cruize
-      startBlock: 6507299
-      address: "0xc904C95D0cbf50342FD92C8ab4764819F5641808"
+      startBlock: 9286521
+      address: "0xBd20b3c614Dc27Cb7cDf17e00359D00194cD585E"
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -29,13 +29,18 @@ dataSources:
         - name: ERC20SymbolBytes
           file: ./abis/ERC20SymbolBytes.json
       eventHandlers:
-        - event: CreateToken(indexed address,indexed address,string,string,uint8)
+        - event: CreateToken(indexed address,indexed address,string,string,uint8,uint256)
           handler: handleCreateToken
         - event: Deposit(indexed address,uint256,indexed address)
           handler: handleDepositEvent
-        - event: InstantWithdrawal(indexed address,uint256,uint256,indexed address)
+        - event: InstantWithdrawal(indexed address,uint256,uint16,indexed address)
           handler: handleInstantWithdrawEvent
-      # callHandlers:
-      #   - function: deposit(address,uint256)
-      #     handler: handleDeposit
+        - event: InitiateStandardWithdrawal(indexed address,indexed address,uint256)
+          handler: handleInitiateWithdrawEvent
+        - event: StandardWithdrawal(indexed address,uint256,indexed address)
+          handler: handleStandardWithdrawalEvent
+        - event: CloseRound(indexed address,indexed uint16,uint256,uint256)
+          handler: handleCloseRound
+        - event: CollectVaultFee(indexed address,uint256)
+          handler: handleFeeCollection
       file: ./src/cruize.ts
