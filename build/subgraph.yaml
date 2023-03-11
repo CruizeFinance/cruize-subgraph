@@ -7,8 +7,8 @@ dataSources:
     network: arbitrum-goerli
     source:
       abi: Cruize
-      startBlock: 9449765
-      address: "0x632C4cbB61802083363662b9CC3889C7bC2C4648"
+      startBlock: 65112022
+      address: "0xaA553dEdd3Cd9f6E2cd36A1E9B102Eb4e70322c0"
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
