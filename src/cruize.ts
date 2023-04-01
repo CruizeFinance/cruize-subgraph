@@ -3,7 +3,6 @@ import {
   CloseRound,
   CollectVaultFee,
   CreateToken,
-  Cruize,
   Deposit,
   InitiateStandardWithdrawal,
   InstantWithdrawal,
@@ -11,8 +10,6 @@ import {
 } from "../generated/Cruize/Cruize";
 import { Asset, DepositReceipt, ProtocolInfo, Round, Token, TokenInfo, Transaction, User, WithdrawReceipt } from "../generated/schema";
 import {
-  ARBITRUM_GOERLI,
-  BI_18,
   ETH_ADDRESS,
   fetchTokenDecimals,
   fetchTokenName,
@@ -66,9 +63,9 @@ export function handleCreateToken(event: CreateToken): void {
   asset.crToken = crToken.id;
   asset.save();
 
-  let round = new Round(BigInt.fromU64(1).toString());
+  let round = new Round(BigInt.fromU64(1).toString().concat("-").concat(event.params.token.toHexString()));
   round.token = underlyingToken.id;
-  round.fee = ONE_BI;
+  round.fee = ZERO_BI;
   round.round = ONE_BI;
   round.pending = ZERO_BI;
   round.cap = event.params.tokenCap;
@@ -131,7 +128,7 @@ export function handleDepositEvent(event: Deposit): void {
 
 
   // update Round
-  let currentRound = Round.load(vault.round.toString());
+  let currentRound = Round.load(vault.round.toString().concat("-").concat(event.params.token.toHexString()));
   if(currentRound){
     currentRound.pending = currentRound.pending.plus(event.params.amount);
     currentRound.save();
@@ -188,8 +185,18 @@ export function handleInstantWithdrawEvent(event: InstantWithdrawal): void {
     tokenInfo.save();
   }
 
+  // update ProtocolInfo
+  let to = event.transaction.to;
+  if(to){
+    let protocolInfo = ProtocolInfo.load(to.toHexString());
+    if(protocolInfo){
+      protocolInfo.totalWithdrawal = protocolInfo.totalWithdrawal.plus(ONE_BI);
+      protocolInfo.save()
+    }
+  }
+
   // update Round
-  let currentRound = Round.load(event.params.currentRound.toString());
+  let currentRound = Round.load(event.params.currentRound.toString().concat("-").concat(event.params.token.toHexString()));
   if(currentRound){
     currentRound.pending = currentRound.pending.minus(event.params.amount);
     currentRound.save();
@@ -280,12 +287,22 @@ export function handleStandardWithdrawalEvent(event: StandardWithdrawal ):void {
     tokenInfo.save();
   }
 
+   // update ProtocolInfo
+   let to = event.transaction.to;
+   if(to){
+     let protocolInfo = ProtocolInfo.load(to.toHexString());
+     if(protocolInfo){
+       protocolInfo.totalWithdrawal = protocolInfo.totalWithdrawal.plus(ONE_BI);
+       protocolInfo.save()
+     }
+   }
+  
   // populate withdraw
   let transaction = new Transaction(event.transaction.hash.toHexString());
-
+  
   let asset = Asset.load(event.params.token.toHexString());
   if(!asset) asset = loadAsset(event.params.token);
-
+  
   transaction.account = event.transaction.from;
   transaction.round = vault.round;
   transaction.type = "COMPLETE-WITHDRAW";
@@ -295,23 +312,25 @@ export function handleStandardWithdrawalEvent(event: StandardWithdrawal ):void {
   transaction.amount = event.params.amount;
   transaction.txHash = event.transaction.hash;
   transaction.timestamp = event.block.timestamp;
-
+  
   transaction.save();
-
+  
   let transactions = user.transactions;
   transactions.push(transaction.id);
   user.transactions = transactions;
   user.save();
-
+  
   // populate withdraw receipt
-  // if(user.lastWithdraw){
-  //   let withdrawReceipt = WithdrawReceipt.load(user.lastWithdraw)
-  //   if(withdrawReceipt){
-  //     withdrawReceipt.isRequested = false;
-  //     withdrawReceipt.amount = event.params.amount;
-  //     withdrawReceipt.save();
-  //   }
-  // }
+  let _lastWithdraw = user.lastWithdraw;
+  if(_lastWithdraw){
+    let withdrawReceipt = WithdrawReceipt.load(_lastWithdraw)
+    if(withdrawReceipt){
+      withdrawReceipt.isRequested = false;
+      withdrawReceipt.amount = event.params.amount;
+      withdrawReceipt.save();
+    }
+  }
+  
 }
 
 }
@@ -320,6 +339,8 @@ export function handleStandardWithdrawalEvent(event: StandardWithdrawal ):void {
 export function handleCloseRound(event: CloseRound ):void {
   const vault = fetchVault(event.params.token);
 
+
+  // update ProtocolInfo
   let to = event.transaction.to;
   if(to){
     let protocolInfo = ProtocolInfo.load(to.toHexString());
@@ -339,14 +360,14 @@ export function handleCloseRound(event: CloseRound ):void {
     tokenInfo.save();
   }
 
-  let currentRound = Round.load(event.params.round.toString());
+  let currentRound = Round.load(event.params.round.toString().concat("-").concat(event.params.token.toHexString()));
   if(currentRound){
     currentRound.SharePerUnit = event.params.SharePerUnit;
     currentRound.status = "CLOSED";
     currentRound.save();
   }
 
-    let nextRound = new Round((event.params.round+1).toString());
+    let nextRound = new Round((event.params.round+1).toString().concat("-").concat(event.params.token.toHexString()));
     nextRound.round = BigInt.fromU64(event.params.round+1);
     nextRound.cap = vault.cap;
     nextRound.pending = ZERO_BI;
@@ -362,7 +383,7 @@ export function handleCloseRound(event: CloseRound ):void {
 // event (token , fee)
 export function handleFeeCollection(event: CollectVaultFee ):void {
   const vault = fetchVault(event.params.token);
-  let currentRound = Round.load(vault.round.minus(ONE_BI).toString());
+  let currentRound = Round.load(vault.round.minus(ONE_BI).toString().concat("-").concat(event.params.token.toHexString()));
   if(currentRound){
     currentRound.fee = event.params.vaultFee;
     currentRound.save();
